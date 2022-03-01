@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
+const encrypt = require('mongoose-encryption')
+
 
 const app = express();
 app.use(express.static('public'));
@@ -16,12 +18,15 @@ mongoose.connect('mongodb://localhost:27017/AuthanticationDB',
         useUnifiedTopology: true
     }
 );
-const userSchema = {
+const userSchema = new mongoose.Schema({
     email: String,
     password: String
-}
-const User = mongoose.model('User', userSchema)
-
+})
+// mongoose encryption.
+const secret = "thisisourlittlesecret"
+userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] }) //This will auto encrypt the defined field whenever .save() 
+const User = mongoose.model('User', userSchema)                               //method get called and automaticaly decrypt the that 
+//                                                                            //field .find() method get called with that field specified
 
 
 app.get('/', (req, res) => {
