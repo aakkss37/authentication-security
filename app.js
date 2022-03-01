@@ -1,3 +1,5 @@
+
+require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
@@ -23,7 +25,7 @@ const userSchema = new mongoose.Schema({
     password: String
 })
 // mongoose encryption.
-const secret = "thisisourlittlesecret"
+const secret = process.env.SECRET
 userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] }) //This will auto encrypt the defined field whenever .save() 
 const User = mongoose.model('User', userSchema)                               //method get called and automaticaly decrypt the that 
 //                                                                            //field .find() method get called with that field specified
