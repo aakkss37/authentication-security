@@ -3,7 +3,7 @@ require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
-const encrypt = require('mongoose-encryption')
+const md5 = require('md5')
 
 
 const app = express();
@@ -24,11 +24,8 @@ const userSchema = new mongoose.Schema({
     email: String,
     password: String
 })
-// mongoose encryption.
-const secret = process.env.SECRET
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] }) //This will auto encrypt the defined field whenever .save() 
-const User = mongoose.model('User', userSchema)                               //method get called and automaticaly decrypt the that 
-//                                                                            //field .find() method get called with that field specified
+const User = mongoose.model('User', userSchema)
+
 
 
 app.get('/', (req, res) => {
@@ -48,7 +45,7 @@ app.get('/secrets', (req, res) => {
 app.post('/register', (req, res) => {
     const NewUser = new User({
         email: req.body.username,
-        password: req.body.password
+        password: md5(req.body.password)
     })
     NewUser.save((err) => {
         if (err) {
@@ -60,7 +57,7 @@ app.post('/register', (req, res) => {
 })
 app.post('/login', (req, res) => {
     const user = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
     User.findOne({ email: user }, (err, foundUser) => {
         if (err) {
             console.log(err)
