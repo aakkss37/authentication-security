@@ -1,9 +1,9 @@
-
 require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
-const md5 = require('md5')
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 
 const app = express();
@@ -43,38 +43,40 @@ app.get('/secrets', (req, res) => {
 
 
 app.post('/register', (req, res) => {
-    const NewUser = new User({
-        email: req.body.username,
-        password: md5(req.body.password)
-    })
-    NewUser.save((err) => {
-        if (err) {
-            console.log(err)
-        } else {
-            res.redirect('/secrets')
-        }
-    })
+    bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
+        const NewUser = new User({
+            email: req.body.username,
+            password: hash
+        })
+        NewUser.save((err) => {
+            if (err) {
+                console.log(err)
+            } else {
+                res.redirect('/secrets')
+            }
+        })
+    });
 })
 app.post('/login', (req, res) => {
     const user = req.body.username;
-    const password = md5(req.body.password);
+    const password = req.body.password;
     User.findOne({ email: user }, (err, foundUser) => {
         if (err) {
             console.log(err)
         } else {
             if (foundUser) {
-                console.log("credential found")
-                if (foundUser.password === password) {
-                    res.redirect('/secrets')
-                } else {
-                    console.log("wrong password")
-                }
+                bcrypt.compare(password, foundUser.password, function (err, result) {
+                    if (result === true) {
+                        res.redirect('/secrets')
+                    } else {
+                        console.log("wrong password")
+                    }
+                });
             } else {
                 console.log('credential does not exist')
             }
         }
     })
-
 })
 
 
